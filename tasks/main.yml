@@ -110,3 +110,8 @@
   when: es_templates | bool
   tags:
       - templates
+
+- name: configure snapshot policy
+  include: elasticsearch-snapshots.yml
+  when: es_snapshots is defined
+  run_once: True

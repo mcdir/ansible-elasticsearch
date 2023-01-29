@@ -1,0 +1,13 @@
+---
+- name: prepare repository
+  set_fact:            
+    snapshot_repositories: "{{ snapshot_repositories | union([ snapshot_repository ]) }}"
+    snapshots: "{{ snapshots | union([ snapshot ]) }}"
+  vars:
+    snapshot_repository:
+      name: "{{ item.repository }}"
+      body:
+        type: "fs"
+        settings:
+          location: "{{ item.location }}"
+    snapshot: "{{ item.snapshot }}"

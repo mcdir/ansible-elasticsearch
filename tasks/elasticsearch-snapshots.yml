@@ -1,0 +1,48 @@
+---
+- name: prepare repositories list loop
+  include_tasks: elasticsearch-snapshots-prepare.yml
+  with_items: "{{ es_snapshots }}"
+  vars:
+    snapshot_repositories: []
+    snapshots: []
+
+- name: register repositories
+  uri:
+    url: "{{ es_api_uri }}/_snapshot/{{ item.name | urlencode }}?pretty"
+    method: PUT
+    body_format: json
+    body: "{{ item.body | to_json }}"
+    status_code: 200
+    user: "{{es_api_basic_auth_username}}"
+    password: "{{es_api_basic_auth_password}}"
+    force_basic_auth: yes
+    validate_certs: "{{ es_validate_certs }}"
+  no_log: true
+  with_items: "{{ snapshot_repositories }}"
+
+- name: register slm_policy
+  uri:
+    url: "{{ es_api_uri }}/_slm/policy/{{ item.name | urlencode }}?pretty"
+    method: PUT
+    body_format: json
+    body: "{{ item.slm_policy | to_json }}"
+    status_code: 200
+    user: "{{es_api_basic_auth_username}}"
+    password: "{{es_api_basic_auth_password}}"
+    force_basic_auth: yes
+    validate_certs: "{{ es_validate_certs }}"
+  no_log: true
+  with_items: "{{ snapshots }}"
+
+- name: run snapshot policy
+  uri:
+    url: "{{ es_api_uri }}/_slm/policy/{{ item.name | urlencode }}/_execute?pretty"
+    method: POST
+    status_code: 200
+    user: "{{es_api_basic_auth_username}}"
+    password: "{{es_api_basic_auth_password}}"
+    force_basic_auth: yes
+    validate_certs: "{{ es_validate_certs }}"
+  no_log: true
+  when: item.run_at_create | bool
+  with_items: "{{ snapshots }}"

@@ -89,6 +89,7 @@
     force: '{{ force_install }}'
     allow_unauthenticated: "{{ 'no' if es_apt_key else 'yes' }}"
     cache_valid_time: 86400
+    update_cache: true
   when: es_use_repository
   register: debian_elasticsearch_install_from_repo
   notify: restart elasticsearch
@@ -112,6 +113,7 @@
     deb: "{% if es_custom_package_url is defined %}{{ es_custom_package_url }}{% else %}{{ es_deb_url }}{% endif %}"
     state: present
   when: not es_use_repository
+    and es_deb_url is defined
   register: elasticsearch_install_from_package
   notify: restart elasticsearch
   environment:
